@@ -3,3 +3,4 @@ oauthlib
 requests_oauthlib
 tornado
 pycurl
+redis

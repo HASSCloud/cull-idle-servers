@@ -53,6 +53,7 @@ import json
 import logging
 import os
 import smtplib
+from redis import StrictRedis
 
 try:
     from urllib.parse import quote, urljoin
@@ -236,12 +237,51 @@ class Mailer(object):
         smtp.quit()
 
 
+class RedisSet(object):
+    """A Redis backed Set that has a similar interface to the builtin Python
+    set() mostly for convenience so we don't have to change all the call sites
+
+    Subsequently this means it only implements the following interface:
+
+    - add(value)
+    - discard(value)
+    - __contains__(value)
+
+    This looks for configuration on how to connect to the Redis instance
+    by either directly passing host and port values to the constructor
+    (optional) or deriving those values from the environment by looking
+    at the folllowing environment values:
+
+    - REDIS_HOST (required)
+    - REDIS_PORT (default: 6379)
+    - REDIS_DB   (default: 0)
+    """
+
+    def __init__(self, name, host=None, port=None, db=0):
+        self._name = name
+
+        host = host or os.environ.get("REDIS_HOST", None)
+        port = port or int(os.environ.get("REDIS_PORT", "6379"))
+        db = db or os int(os.environ.get("REDIS_DB", "0"))
+
+        self._conn = StrictRedis(host=host, port=port, db=db)
+
+    def __contains__(self, value):
+        return self._conn.sismember(self._name, value)
+
+    def add(self, value):
+        self._conn.sadd(self._name, value)
+
+    def discard(self, value):
+        self._conn.srem(self._name, value)
+
+
 # if we add a user here, send a warning email,...
 # if no longer warned, remove user from here,...
 # if already in here, just ignore it (already warned)
 # if culled, we can remove, but don't have to...
 # only add if warning succeeded.
-WARNED_USER = set()
+WARNED_USER = RedisSet()
 KC = None
 MAILER = None
 
