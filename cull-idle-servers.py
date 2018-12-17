@@ -281,7 +281,7 @@ class RedisSet(object):
 # if already in here, just ignore it (already warned)
 # if culled, we can remove, but don't have to...
 # only add if warning succeeded.
-WARNED_USER = RedisSet()
+WARNED_USER = RedisSet() if "USE_REDIS" in os.environ else set()
 KC = None
 MAILER = None
 
