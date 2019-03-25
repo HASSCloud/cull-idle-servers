@@ -207,7 +207,7 @@ class Mailer(object):
             content = open(self.template).read()
         else:
             content = (
-                "From: ecocloud Support <support@ecocloud.org.au>\n"
+                "From: tinker Support <support@tinker.edu.au>\n"
                 "Subject: Inactive Server will be shutdown.\n"
                 "\n"
                 "Your Notebook Server at {serverurl} has been idle for {inactive} and will be shutdown "
